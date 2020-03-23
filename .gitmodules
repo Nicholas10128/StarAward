@@ -1,0 +1,3 @@
+[submodule "Assets/UnityCsvUtil"]
+	path = Assets/UnityCsvUtil
+	url = https://github.com/Nicholas10128/UnityCsvUtil.git
