@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.IO;
 using UnityEngine;
 using Sinbad;
 
@@ -65,20 +65,37 @@ public class CustomStarUsage
     public string m_StarUsage49 = " ";
     public string m_StarUsage50 = " ";
 
+    private byte[] m_StarsMaxCount = new byte[50];
+
     private string m_ArchiveFilePath = Application.persistentDataPath + "/starUsage.csv";
 
     public static void Reload()
     {
         m_Instance = new CustomStarUsage();
-        CsvUtil.LoadObject(m_Instance.m_ArchiveFilePath, ref m_Instance);
+        if (File.Exists(m_Instance.m_ArchiveFilePath))
+        {
+            CsvUtil.LoadObject(m_Instance.m_ArchiveFilePath, ref m_Instance);
+        }
+        for (int i = 0; i < m_Instance.m_StarUsageCount; i++)
+        {
+            string strUsage = m_Instance.GetUsage(i);
+            string[] strs = strUsage.Split('.');
+            if (strs.Length != 2)
+            {
+                Debug.LogError("Invalid star usage format: " + strUsage);
+                break;
+            }
+            m_Instance.ResetUsage(i, strs[0]);
+            if (!byte.TryParse(strs[1], out m_Instance.m_StarsMaxCount[i]))
+            {
+                Debug.LogError("Invalid star usage format: " + strUsage);
+                break;
+            }
+        }
     }
 
     public void Save()
     {
-        m_StarUsageCount = 3;
-        m_StarUsage1 = "做作业";
-        m_StarUsage2 = "弹钢琴";
-        m_StarUsage3 = "吃饭";
         CsvUtil.SaveObject(this, m_ArchiveFilePath);
     }
 
@@ -191,5 +208,170 @@ public class CustomStarUsage
 
         Debug.LogError("Invalid index of custom star usage: " + index);
         return string.Empty;
+    }
+
+    public void ResetUsage(int index, string strUsage)
+    {
+        // Such ugly codes are due to UnityCsvUtil's reflection using.
+        switch (index)
+        {
+            case 0:
+                m_StarUsage1 = strUsage;
+                return;
+            case 1:
+                m_StarUsage2 = strUsage;
+                return;
+            case 2:
+                m_StarUsage3 = strUsage;
+                return;
+            case 3:
+                m_StarUsage4 = strUsage;
+                return;
+            case 4:
+                m_StarUsage5 = strUsage;
+                return;
+            case 5:
+                m_StarUsage6 = strUsage;
+                return;
+            case 6:
+                m_StarUsage7 = strUsage;
+                return;
+            case 7:
+                m_StarUsage8 = strUsage;
+                return;
+            case 8:
+                m_StarUsage9 = strUsage;
+                return;
+            case 9:
+                m_StarUsage10 = strUsage;
+                return;
+            case 10:
+                m_StarUsage11 = strUsage;
+                return;
+            case 11:
+                m_StarUsage12 = strUsage;
+                return;
+            case 12:
+                m_StarUsage13 = strUsage;
+                return;
+            case 13:
+                m_StarUsage14 = strUsage;
+                return;
+            case 14:
+                m_StarUsage15 = strUsage;
+                return;
+            case 15:
+                m_StarUsage16 = strUsage;
+                return;
+            case 16:
+                m_StarUsage17 = strUsage;
+                return;
+            case 17:
+                m_StarUsage18 = strUsage;
+                return;
+            case 18:
+                m_StarUsage19 = strUsage;
+                return;
+            case 19:
+                m_StarUsage20 = strUsage;
+                return;
+            case 20:
+                m_StarUsage21 = strUsage;
+                return;
+            case 21:
+                m_StarUsage22 = strUsage;
+                return;
+            case 22:
+                m_StarUsage23 = strUsage;
+                return;
+            case 23:
+                m_StarUsage24 = strUsage;
+                return;
+            case 24:
+                m_StarUsage25 = strUsage;
+                return;
+            case 25:
+                m_StarUsage26 = strUsage;
+                return;
+            case 26:
+                m_StarUsage27 = strUsage;
+                return;
+            case 27:
+                m_StarUsage28 = strUsage;
+                return;
+            case 28:
+                m_StarUsage29 = strUsage;
+                return;
+            case 29:
+                m_StarUsage30 = strUsage;
+                return;
+            case 30:
+                m_StarUsage31 = strUsage;
+                return;
+            case 31:
+                m_StarUsage32 = strUsage;
+                return;
+            case 32:
+                m_StarUsage33 = strUsage;
+                return;
+            case 33:
+                m_StarUsage34 = strUsage;
+                return;
+            case 34:
+                m_StarUsage35 = strUsage;
+                return;
+            case 35:
+                m_StarUsage36 = strUsage;
+                return;
+            case 36:
+                m_StarUsage37 = strUsage;
+                return;
+            case 37:
+                m_StarUsage38 = strUsage;
+                return;
+            case 38:
+                m_StarUsage39 = strUsage;
+                return;
+            case 39:
+                m_StarUsage40 = strUsage;
+                return;
+            case 40:
+                m_StarUsage41 = strUsage;
+                return;
+            case 41:
+                m_StarUsage42 = strUsage;
+                return;
+            case 42:
+                m_StarUsage43 = strUsage;
+                return;
+            case 43:
+                m_StarUsage44 = strUsage;
+                return;
+            case 44:
+                m_StarUsage45 = strUsage;
+                return;
+            case 45:
+                m_StarUsage46 = strUsage;
+                return;
+            case 46:
+                m_StarUsage47 = strUsage;
+                return;
+            case 47:
+                m_StarUsage48 = strUsage;
+                return;
+            case 48:
+                m_StarUsage49 = strUsage;
+                return;
+            case 49:
+                m_StarUsage50 = strUsage;
+                return;
+        }
+
+        Debug.LogError("Invalid index of custom star usage: " + index);
+    }
+
+    public byte GetStarMaxCount(int index)
+    {
+        return m_StarsMaxCount[index];
     }
 }

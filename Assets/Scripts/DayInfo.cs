@@ -56,4 +56,10 @@ public class DayInfo
             }
         }
     }
+
+    public void Modify(DayInfo day)
+    {
+        m_Stars = day.m_Stars;
+        Init();
+    }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using Sinbad;
@@ -23,10 +23,27 @@ public class Days
         return m_Days[index];
     }
 
+    public void ModifyADay(DayInfo day)
+    {
+        foreach (DayInfo di in m_Days)
+        {
+            if (di.m_Year == day.m_Year && di.m_Month == day.m_Month && di.m_Day == day.m_Day)
+            {
+                di.Modify(day);
+                return;
+            }
+        }
+        m_Days.Add(day);
+        Save();
+    }
+
     public void Reload()
     {
         m_Days.Clear();
-        m_Days = CsvUtil.LoadObjects<DayInfo>(m_ArchiveFilePath);
+        if (File.Exists(m_ArchiveFilePath))
+        {
+            m_Days = CsvUtil.LoadObjects<DayInfo>(m_ArchiveFilePath);
+        }
         foreach (DayInfo day in m_Days)
         {
             day.Init();
@@ -35,8 +52,9 @@ public class Days
 
     public void Save()
     {
-        List<DayInfo> days = new List<DayInfo>();
-        days.Add(new DayInfo(2020, 3, 23, "1.2.3.4"));
-        CsvUtil.SaveObjects(days, m_ArchiveFilePath);
+        if (m_Days.Count > 0)
+        {
+            CsvUtil.SaveObjects(m_Days, m_ArchiveFilePath);
+        }
     }
 }
