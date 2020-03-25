@@ -36,6 +36,7 @@ public class StarUsage : MonoBehaviour
             starRowGameObjects[i].name = m_StringBuilder.ToString();
             m_StringBuilder.Clear();
             starRowGameObjects[i].transform.SetParent(m_Transform);
+            starRowGameObjects[i].transform.localScale = Vector3.one;
         }
         for (int i = 0; i < starUsageCount; i++)
         {
@@ -54,9 +55,27 @@ public class StarUsage : MonoBehaviour
                 starText.name = m_StringBuilder.ToString();
                 m_StringBuilder.Clear();
                 starText.transform.SetParent(starRow.m_Stars[0].transform.parent);
+                starText.transform.localScale = Vector3.one;
                 starRow.m_Stars[j] = starText.GetComponent<Button>();
             }
             m_StarRows[i] = starRow;
+        }
+    }
+
+    public void RefreshDay(DayInfo di)
+    {
+        int iMax = di.starsCount;
+        for (int i = 0; i < iMax; i++)
+        {
+            byte starCount = di.GetStarCount(i);
+            if (starCount == 0)
+            {
+                m_StarRows[i].OnStarClick(null);
+            }
+            else
+            {
+                m_StarRows[i].OnStarClick(m_StarRows[i].m_Stars[starCount - 1]);
+            }
         }
     }
 

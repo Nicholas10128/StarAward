@@ -6,6 +6,7 @@ public class RecordRow : MonoBehaviour
     public GridLayoutGroup m_ParentGridLayoutGroup;
     public GridLayoutGroup m_GridLayoutGroup;
 
+    public GameObject m_ModifyButton;
     public Text m_DateTime;
     public Text[] m_Stars;
 

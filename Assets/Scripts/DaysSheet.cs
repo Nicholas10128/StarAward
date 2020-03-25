@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class DaysSheet : MonoBehaviour
 {
+    public MainWindow m_MainWindow;
     public RecordRow m_CaptionRow;
 
     private Transform m_Transform;
@@ -37,6 +38,7 @@ public class DaysSheet : MonoBehaviour
             starText.name = m_StringBuilder.ToString();
             m_StringBuilder.Clear();
             starText.transform.SetParent(m_CaptionRow.transform);
+            starText.transform.localScale = Vector3.one;
             m_CaptionRow.m_Stars[i] = starText.GetComponent<Text>();
             m_CaptionRow.m_Stars[i].text = CustomStarUsage.m_Instance.GetUsage(i);
         }
@@ -66,6 +68,7 @@ public class DaysSheet : MonoBehaviour
                 record.name = m_StringBuilder.ToString();
                 m_StringBuilder.Clear();
                 record.transform.SetParent(m_Transform);
+                record.transform.localScale = Vector3.one;
                 m_RecordRows[i] = record.GetComponent<RecordRow>();
             }
         }
@@ -79,6 +82,18 @@ public class DaysSheet : MonoBehaviour
                 m_StringBuilder.Append(day.GetStarCount(j));
                 m_RecordRows[i].m_Stars[j].text = m_StringBuilder.ToString();
                 m_StringBuilder.Clear();
+            }
+        }
+    }
+
+    public void OnModifyButton(GameObject go)
+    {
+        for (int i = 0, iMax = m_RecordRows.Length; i < iMax; i++)
+        {
+            if (ReferenceEquals(m_RecordRows[i].m_ModifyButton, go))
+            {
+                m_MainWindow.OnModifyADayButtonClick(i);
+                break;
             }
         }
     }
