@@ -8,6 +8,7 @@ public class MainWindow : MonoBehaviour
 
     public Canvas m_MainWindow;
     public ModifyADay m_ModifyADay;
+    public CustomStarUsageUI m_CustomStarUsageUI;
     public Canvas m_CustomStarUsage;
 
     public DaysSheet m_DaysSheet;
@@ -65,6 +66,20 @@ public class MainWindow : MonoBehaviour
     public void CloseModifyADay(bool modified)
     {
         m_ModifyADay.OnClose();
+        if (modified)
+        {
+            RefreshUI();
+        }
+    }
+
+    public void OnCustomStarUsageButtonClick()
+    {
+        m_CustomStarUsageUI.OnOpen();
+    }
+
+    public void CloseCustomStarUsageUI(bool modified)
+    {
+        m_CustomStarUsageUI.OnClose();
         if (modified)
         {
             RefreshUI();

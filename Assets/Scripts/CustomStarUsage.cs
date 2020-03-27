@@ -374,4 +374,9 @@ public class CustomStarUsage
     {
         return m_StarsMaxCount[index];
     }
+
+    public void ResetStarMaxCount(int index, byte count)
+    {
+        m_StarsMaxCount[index] = count;
+    }
 }
