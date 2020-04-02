@@ -3,4 +3,5 @@
 	url = https://github.com/Nicholas10128/UnityCsvUtil.git
 
 [submodule "Assets/MessageBox"]
-	path = Assets/MessageBox	url = https://github.com/Nicholas10128/MessageBox.git
+	path = Assets/MessageBox
+	url = https://github.com/Nicholas10128/MessageBox.git
