@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using UnityEngine;
+using GCT.UI;
 
 public class MainWindow : MonoBehaviour
 {
@@ -19,11 +20,12 @@ public class MainWindow : MonoBehaviour
     {
         CustomStarUsage.Reload();
         Days.m_Instance.Reload();
+        MessageBox.Initialize();
     }
 
     void Update()
     {
-        
+        MessageBox.Tick();
     }
 
     void RefreshUI()

@@ -57,4 +57,27 @@ public class Days
             CsvUtil.SaveObjects(m_Days, m_ArchiveFilePath);
         }
     }
+
+    public long GetTotalCountByUsage(int usage)
+    {
+        long totalCount = 0;
+        if (usage >= 0)
+        {
+            foreach (DayInfo di in m_Days)
+            {
+                totalCount += di.GetStarCount(usage);
+            }
+        }
+        else
+        {
+            for (int i = 0, iMax = CustomStarUsage.m_Instance.m_StarUsageCount; i < iMax; i++)
+            {
+                foreach (DayInfo di in m_Days)
+                {
+                    totalCount += di.GetStarCount(i);
+                }
+            }
+        }
+        return totalCount;
+    }
 }

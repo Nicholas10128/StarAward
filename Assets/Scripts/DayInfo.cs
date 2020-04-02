@@ -46,7 +46,7 @@ public class DayInfo
     {
         string[] strs = m_Stars.Split('.');
         int iMax = strs.Length;
-        m_StarsCount = new byte[iMax];
+        m_StarsCount = new byte[Mathf.Max(CustomStarUsage.m_Instance.m_StarUsageCount, iMax)];
         for (int i = 0; i < iMax; i++)
         {
             if (!byte.TryParse(strs[i], out m_StarsCount[i]))

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using GCT.UI;
 
 public class StarUsageModifer : MonoBehaviour
 {
@@ -12,10 +13,13 @@ public class StarUsageModifer : MonoBehaviour
     private List<StarModifier> m_StarModifiers = new List<StarModifier>();
     private StringBuilder m_StringBuilder = new StringBuilder();
 
+    private MessageBox.Callback m_DeleteConfirmCallbackDelegate;
+
     void Start()
     {
         m_Transform = transform;
         m_StarModifiers.Add(m_StarRecord);
+        m_DeleteConfirmCallbackDelegate = DeleteConfirmCallback;
     }
 
     void Update()
@@ -66,20 +70,28 @@ public class StarUsageModifer : MonoBehaviour
         int iMax = m_StarModifiers.Count;
         if (iMax <= 1)
         {
-            // Delete the last one is ban.
-            //MessageBox
+            MessageBox.Show("警告", "至少得留一个吧", TextAnchor.MiddleCenter, null, null, 3);
             return;
         }
         for (int i = 0; i < iMax; i++)
         {
             if (ReferenceEquals(btn, m_StarModifiers[i].m_DeleteButton))
             {
-                bool templateDeleted = ReferenceEquals(m_StarRecord, m_StarModifiers[i]);
-                Destroy(m_StarModifiers[i].gameObject);
-                m_StarModifiers.RemoveAt(i);
-                if (templateDeleted)
+                // 删除用途的时候要一并删除已经取得的星星记录。并提示会丢失多少颗星星。
+                long totalCount = Days.m_Instance.GetTotalCountByUsage(i);
+                if (totalCount > 0)
                 {
-                    m_StarRecord = m_StarModifiers[0];
+                    m_StringBuilder.Append("删除");
+                    m_StringBuilder.Append(m_StarModifiers[i].m_UsageInput.text);
+                    m_StringBuilder.Append("会导致");
+                    m_StringBuilder.Append(totalCount);
+                    m_StringBuilder.Append("颗星星丢失，是否确定要删除？");
+                    MessageBox.Show("提示", m_StringBuilder.ToString(), MessageBox.Type.YesOrNo, TextAnchor.MiddleCenter, m_DeleteConfirmCallbackDelegate, i);
+                    m_StringBuilder.Clear();
+                }
+                else
+                {
+                    m_DeleteConfirmCallbackDelegate(MessageBox.ButtonID.Confirm, i);
                 }
                 break;
             }
@@ -89,6 +101,7 @@ public class StarUsageModifer : MonoBehaviour
     public void Save()
     {
         CustomStarUsage customStarUsage = CustomStarUsage.m_Instance;
+        int iPrevMax = customStarUsage.m_StarUsageCount;
         int iMax = customStarUsage.m_StarUsageCount = m_StarModifiers.Count;
         for (int i = 0; i < iMax; i++)
         {
@@ -96,6 +109,26 @@ public class StarUsageModifer : MonoBehaviour
             customStarUsage.ResetUsage(i, starModifier.m_UsageInput.text);
             customStarUsage.ResetStarMaxCount(i, (byte)starModifier.m_MaxStar.value);
         }
+        for (int i = iMax; i < iPrevMax; i++)
+        {
+            customStarUsage.ResetUsage(i, " ");
+            customStarUsage.ResetStarMaxCount(i, 0);
+        }
         customStarUsage.Save();
+    }
+
+    void DeleteConfirmCallback(MessageBox.ButtonID bid, object parameter)
+    {
+        if (bid == MessageBox.ButtonID.Confirm)
+        {
+            int i = (int)parameter;
+            bool templateDeleted = ReferenceEquals(m_StarRecord, m_StarModifiers[i]);
+            Destroy(m_StarModifiers[i].gameObject);
+            m_StarModifiers.RemoveAt(i);
+            if (templateDeleted)
+            {
+                m_StarRecord = m_StarModifiers[0];
+            }
+        }
     }
 }

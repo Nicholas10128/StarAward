@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using UnityEngine;
 using Sinbad;
 
@@ -68,6 +69,7 @@ public class CustomStarUsage
     private byte[] m_StarsMaxCount = new byte[50];
 
     private string m_ArchiveFilePath = Application.persistentDataPath + "/starUsage.csv";
+    private StringBuilder m_StringBuilder = new StringBuilder();
 
     public static void Reload()
     {
@@ -96,6 +98,14 @@ public class CustomStarUsage
 
     public void Save()
     {
+        for (int i = 0; i < m_Instance.m_StarUsageCount; i++)
+        {
+            m_StringBuilder.Append(m_Instance.GetUsage(i));
+            m_StringBuilder.Append(".");
+            m_StringBuilder.Append(m_Instance.m_StarsMaxCount[i]);
+            m_Instance.ResetUsage(i, m_StringBuilder.ToString());
+            m_StringBuilder.Clear();
+        }
         CsvUtil.SaveObject(this, m_ArchiveFilePath);
     }
 
