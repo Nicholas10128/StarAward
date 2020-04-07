@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using System.Collections.Generic;
 using UnityEngine;
 using Sinbad;
 
@@ -70,6 +71,7 @@ public class CustomStarUsage
 
     private string m_ArchiveFilePath = Application.persistentDataPath + "/starUsage.csv";
     private StringBuilder m_StringBuilder = new StringBuilder();
+    private List<string> m_StringListBuffer = new List<string>(16);
 
     public static void Reload()
     {
@@ -98,15 +100,24 @@ public class CustomStarUsage
 
     public void Save()
     {
-        for (int i = 0; i < m_Instance.m_StarUsageCount; i++)
+        int starUsageCount = m_Instance.m_StarUsageCount;
+        for (int i = 0; i < starUsageCount; i++)
         {
-            m_StringBuilder.Append(m_Instance.GetUsage(i));
+            string strUsage = m_Instance.GetUsage(i);
+            m_StringListBuffer.Add(strUsage);
+            m_StringBuilder.Append(strUsage);
             m_StringBuilder.Append(".");
             m_StringBuilder.Append(m_Instance.m_StarsMaxCount[i]);
             m_Instance.ResetUsage(i, m_StringBuilder.ToString());
             m_StringBuilder.Clear();
         }
         CsvUtil.SaveObject(this, m_ArchiveFilePath);
+        // 上面Save的时候加入了"."，需要还原显示。
+        for (int i = 0; i < starUsageCount; i++)
+        {
+            m_Instance.ResetUsage(i, m_StringListBuffer[i]);
+        }
+        m_StringListBuffer.Clear();
     }
 
     public string GetUsage(int index)

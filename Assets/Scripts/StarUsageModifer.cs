@@ -12,6 +12,7 @@ public class StarUsageModifer : MonoBehaviour
     private Transform m_Transform;
     private List<StarModifier> m_StarModifiers = new List<StarModifier>();
     private StringBuilder m_StringBuilder = new StringBuilder();
+    private List<short> m_DeletedIndexList = new List<short>();
 
     private MessageBox.Callback m_DeleteConfirmCallbackDelegate;
 
@@ -33,9 +34,18 @@ public class StarUsageModifer : MonoBehaviour
         int existUICount = m_StarModifiers.Count;
         if (starUsageCount != existUICount)
         {
-            for (int i = existUICount; i < starUsageCount; i++)
+            if (starUsageCount == 0)
             {
-                OnAddButtonClick();
+                StarModifier starModifier = m_StarModifiers[0];
+                starModifier.m_MaxStar.value = 3;
+                starModifier.m_MaxStarText.GetComponent<SliderValue>().OnValueChanged(starModifier.m_MaxStar);
+            }
+            else
+            {
+                for (int i = existUICount; i < starUsageCount; i++)
+                {
+                    OnAddButtonClick();
+                }
             }
         }
         for (int i = 0; i < starUsageCount; i++)
@@ -125,6 +135,15 @@ public class StarUsageModifer : MonoBehaviour
             bool templateDeleted = ReferenceEquals(m_StarRecord, m_StarModifiers[i]);
             Destroy(m_StarModifiers[i].gameObject);
             m_StarModifiers.RemoveAt(i);
+            short realIndex = (short)i;
+            foreach (short deletedIndex in m_DeletedIndexList)
+            {
+                if (deletedIndex < realIndex)
+                {
+                    realIndex++;
+                }
+            }
+            m_DeletedIndexList.Add(realIndex);
             if (templateDeleted)
             {
                 m_StarRecord = m_StarModifiers[0];

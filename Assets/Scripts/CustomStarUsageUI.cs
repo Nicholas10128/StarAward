@@ -39,6 +39,7 @@ public class CustomStarUsageUI : MonoBehaviour
     public void OnConfirmButtonClick()
     {
         m_StarUsageModifer.Save();
+        Days.m_Instance.ModifyDays();
         m_MainWindow.CloseCustomStarUsageUI(true);
     }
 

@@ -24,6 +24,11 @@ public class ModifyADay : MonoBehaviour
         
     }
 
+    public void RefreshUI()
+    {
+        m_StarUsage.RefreshUI();
+    }
+
     public void OnOpen(DayInfo di)
     {
         m_TheDay = di;
@@ -50,6 +55,7 @@ public class ModifyADay : MonoBehaviour
         string stars = m_StringBuilder.ToString();
         m_StringBuilder.Clear();
         m_TheDay.m_Stars = stars;
+        m_TheDay.Init();
         Days.m_Instance.ModifyADay(m_TheDay);
 
         m_MainWindow.CloseModifyADay(true);

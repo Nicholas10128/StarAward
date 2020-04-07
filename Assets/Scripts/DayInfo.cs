@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using UnityEngine;
 
 public class DayInfo
@@ -9,6 +10,8 @@ public class DayInfo
     public string m_Stars;
 
     private byte[] m_StarsCount;
+
+    private StringBuilder m_StringBuilder = new StringBuilder();
 
     public int starsCount
     {
@@ -61,5 +64,38 @@ public class DayInfo
     {
         m_Stars = day.m_Stars;
         Init();
+    }
+
+    public void Modify()
+    {
+        byte[] originStarCount = m_StarsCount;
+        int iMax = CustomStarUsage.m_Instance.m_StarUsageCount;
+        m_StarsCount = new byte[iMax];
+        iMax = Mathf.Min(iMax, originStarCount.Length) - 1;
+        for (int i = 0; i < iMax; i++)
+        {
+            m_StarsCount[i] = originStarCount[i];
+            m_StringBuilder.Append(m_StarsCount[i]);
+            m_StringBuilder.Append('.');
+        }
+        m_StarsCount[iMax] = originStarCount[iMax];
+        m_StringBuilder.Append(m_StarsCount[iMax]);
+        m_Stars = m_StringBuilder.ToString();
+        m_StringBuilder.Clear();
+    }
+
+    public bool IsToday()
+    {
+        return IsDay(DateTime.Now);
+    }
+
+    public bool IsDay(DateTime day)
+    {
+        return m_Year == day.Year && m_Month == day.Month && m_Day == day.Day;
+    }
+
+    public bool IsDay(DayInfo day)
+    {
+        return m_Year == day.m_Year && m_Month == day.m_Month && m_Day == day.m_Day;
     }
 }

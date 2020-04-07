@@ -31,6 +31,7 @@ public class MainWindow : MonoBehaviour
     void RefreshUI()
     {
         m_DaysSheet.RefreshUI();
+        m_ModifyADay.RefreshUI();
     }
 
     public void OnCheckInTodayButtonClick()
@@ -40,7 +41,7 @@ public class MainWindow : MonoBehaviour
         for (int i = 0; i < dayCount; i++)
         {
             DayInfo day = Days.m_Instance.Get(i);
-            if (day.m_Year == today.Year && day.m_Month == today.Month && day.m_Day == today.Day)
+            if (day.IsDay(today))
             {
                 m_ModifyADay.OnOpen(day);
                 return;

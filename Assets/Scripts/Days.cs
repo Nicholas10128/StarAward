@@ -27,13 +27,22 @@ public class Days
     {
         foreach (DayInfo di in m_Days)
         {
-            if (di.m_Year == day.m_Year && di.m_Month == day.m_Month && di.m_Day == day.m_Day)
+            if (di.IsDay(day))
             {
                 di.Modify(day);
                 return;
             }
         }
         m_Days.Add(day);
+        Save();
+    }
+
+    public void ModifyDays()
+    {
+        foreach (DayInfo di in m_Days)
+        {
+            di.Modify();
+        }
         Save();
     }
 
