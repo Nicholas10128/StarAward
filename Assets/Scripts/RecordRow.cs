@@ -21,8 +21,12 @@ public class RecordRow : MonoBehaviour
 
     public void RefreshColumns()
     {
+        if (ReferenceEquals(m_Transform, null))
+        {
+            return;
+        }
         Vector2 cellSize = m_ParentGridLayoutGroup.cellSize;
-        cellSize.x = Mathf.FloorToInt(m_GridLayoutGroup.cellSize.x * m_Transform.childCount);
+        cellSize.x = Mathf.FloorToInt((m_GridLayoutGroup.cellSize.x + m_GridLayoutGroup.spacing.x) * m_Transform.childCount);
         m_ParentGridLayoutGroup.cellSize = cellSize;
     }
 

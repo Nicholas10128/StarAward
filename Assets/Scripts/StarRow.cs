@@ -12,6 +12,7 @@ public class StarRow : MonoBehaviour
     public byte selectedStars { get; private set; }
 
     private Transform m_Transform;
+    private RectTransform m_UsageTransform;
 
     private static bool m_TemplateInited = false;
     private static ColorBlock m_ActiveColor;
@@ -19,7 +20,8 @@ public class StarRow : MonoBehaviour
 
     void Start()
     {
-        m_Transform = transform;
+        m_Transform = m_GridLayoutGroup.transform;
+        m_UsageTransform = m_Usage.GetComponent<RectTransform>();
         RefreshColumns();
         if (m_TemplateInited)
         {
@@ -38,8 +40,13 @@ public class StarRow : MonoBehaviour
 
     public void RefreshColumns()
     {
+        if (ReferenceEquals(m_Transform, null))
+        {
+            return;
+        }
         Vector2 cellSize = m_ParentGridLayoutGroup.cellSize;
-        cellSize.x = Mathf.FloorToInt(m_GridLayoutGroup.cellSize.x * m_Transform.childCount);
+        float width = m_UsageTransform.offsetMax.x - m_UsageTransform.offsetMin.x;
+        cellSize.x = Mathf.Max(cellSize.x, Mathf.FloorToInt((m_GridLayoutGroup.cellSize.x + m_GridLayoutGroup.spacing.x) * m_Transform.childCount + width));
         m_ParentGridLayoutGroup.cellSize = cellSize;
     }
 
@@ -65,10 +72,19 @@ public class StarRow : MonoBehaviour
             {
                 selectedStars = (byte)(i + 1);
                 RefreshUI();
+                btn.OnDeselect(null);
                 return;
             }
         }
         selectedStars = 0;
         RefreshUI();
+    }
+
+    public void OnScroll()
+    {
+        foreach (Button star in m_Stars)
+        {
+            star.OnDeselect(null);
+        }
     }
 }

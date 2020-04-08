@@ -56,7 +56,9 @@ public class StarUsage : MonoBehaviour
         }
         for (int i = 0; i < starUsageCount; i++)
         {
-            m_StarRows[i].m_Usage.text = CustomStarUsage.m_Instance.GetUsage(i);
+            StarRow starRow = m_StarRows[i];
+            starRow.m_Usage.text = CustomStarUsage.m_Instance.GetUsage(i);
+            starRow.RefreshColumns();
         }
     }
 
@@ -88,6 +90,15 @@ public class StarUsage : MonoBehaviour
     public StarRow GetStarRow(int index)
     {
         return m_StarRows[index];
+    }
+
+    public void OnScroll()
+    {
+        // This should be UGUI's bug.
+        foreach (StarRow starRow in m_StarRows)
+        {
+            starRow.OnScroll();
+        }
     }
 
     private void AdjustStarRows(int starUsageCount)

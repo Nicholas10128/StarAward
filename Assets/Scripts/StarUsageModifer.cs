@@ -127,6 +127,30 @@ public class StarUsageModifer : MonoBehaviour
         customStarUsage.Save();
     }
 
+    public bool ArchiveIsDirty()
+    {
+        int starUsageCount = CustomStarUsage.m_Instance.m_StarUsageCount;
+        if (starUsageCount != m_StarModifiers.Count)
+        {
+            return true;
+        }
+        for (int i = 0; i < starUsageCount; i++)
+        {
+            string strUsage = CustomStarUsage.m_Instance.GetUsage(i);
+            StarModifier starModifier = m_StarModifiers[i];
+            if (strUsage != starModifier.m_UsageInput.text)
+            {
+                return true;
+            }
+            byte starMaxCount = CustomStarUsage.m_Instance.GetStarMaxCount(i);
+            if (starMaxCount != starModifier.m_MaxStar.value)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void DeleteConfirmCallback(MessageBox.ButtonID bid, object parameter)
     {
         if (bid == MessageBox.ButtonID.Confirm)

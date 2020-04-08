@@ -45,8 +45,14 @@ public class CustomStarUsageUI : MonoBehaviour
 
     public void OnCancelButtonClick()
     {
-        MessageBox.Show("提示", "确定不保存就关闭吗？", MessageBox.Type.YesOrNo, TextAnchor.MiddleCenter, m_CancelConfirmCallbackDelegate, null);
-        
+        if (m_StarUsageModifer.ArchiveIsDirty())
+        {
+            MessageBox.Show("提示", "确定不保存就关闭吗？", MessageBox.Type.YesOrNo, TextAnchor.MiddleCenter, m_CancelConfirmCallbackDelegate, null);
+        }
+        else
+        {
+            CancelConfirmCallback(MessageBox.ButtonID.Confirm, null);
+        }
     }
 
     void CancelConfirmCallback(MessageBox.ButtonID bid, object parameter)

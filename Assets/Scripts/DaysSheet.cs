@@ -76,6 +76,7 @@ public class DaysSheet : MonoBehaviour
                 recordRow.m_Stars[j].text = m_StringBuilder.ToString();
                 m_StringBuilder.Clear();
             }
+            recordRow.RefreshColumns();
         }
     }
 
