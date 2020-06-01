@@ -10,6 +10,8 @@ public class Days
     private string m_ArchiveFilePath = Application.persistentDataPath + "/archive.csv";
     private List<DayInfo> m_Days = new List<DayInfo>();
 
+    private bool m_CountRemoved = false;
+
     public int Count
     {
         get
@@ -123,5 +125,13 @@ public class Days
                 break;
             }
         }
+        m_CountRemoved = true;
+    }
+
+    public bool ClearCountRemoved()
+    {
+        bool countRemoved = m_CountRemoved;
+        m_CountRemoved = false;
+        return countRemoved;
     }
 }

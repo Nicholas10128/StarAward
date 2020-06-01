@@ -85,7 +85,10 @@ public class MainWindow : MonoBehaviour
         {
             m_StarUsageModifer.Save();
             m_StarUsage.RefreshUI();
-            m_StarUsage.RefreshToday();
+            if (Days.m_Instance.ClearCountRemoved())
+            {
+                m_StarUsage.RefreshToday();
+            }
         }
 
         _OnTabButtonClick((int)parameter);
