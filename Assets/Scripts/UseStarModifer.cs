@@ -4,13 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using GCT.UI;
 
-public class StarUsageModifer : MonoBehaviour
+public class UseStarModifer : MonoBehaviour
 {
-    public StarModifier m_StarRecord;
+    public UseStar m_StarRecord;
     public Transform m_AddButton;
 
     private Transform m_Transform;
-    private List<StarModifier> m_StarModifiers = new List<StarModifier>();
+    private List<UseStar> m_StarModifiers = new List<UseStar>();
     private StringBuilder m_StringBuilder = new StringBuilder();
     private List<short> m_DeletedIndexList = new List<short>();
 
@@ -30,15 +30,13 @@ public class StarUsageModifer : MonoBehaviour
 
     public void RefreshUI()
     {
-        int starUsageCount = CustomStarUsage.m_Instance.m_StarUsageCount;
+        int starUsageCount = UseStarHistory.m_Instance.Count;
         int existUICount = m_StarModifiers.Count;
         if (starUsageCount != existUICount)
         {
             if (starUsageCount == 0)
             {
-                StarModifier starModifier = m_StarModifiers[0];
-                starModifier.m_MaxStar.value = 3;
-                starModifier.m_MaxStarText.GetComponent<SliderValue>().OnValueChanged(starModifier.m_MaxStar);
+                UseStar starModifier = m_StarModifiers[0];
             }
             else
             {
@@ -50,20 +48,18 @@ public class StarUsageModifer : MonoBehaviour
         }
         for (int i = 0; i < starUsageCount; i++)
         {
-            StarModifier starModifier = m_StarModifiers[i];
-            starModifier.m_UsageInput.text = CustomStarUsage.m_Instance.GetUsage(i);
-            starModifier.m_MaxStar.value = CustomStarUsage.m_Instance.GetStarMaxCount(i);
-            starModifier.m_MaxStarText.GetComponent<SliderValue>().OnValueChanged(starModifier.m_MaxStar);
+            UseStar starModifier = m_StarModifiers[i];
+            UseStarInfo useStarInfo = UseStarHistory.m_Instance.Get(i);
+            starModifier.m_UsageInput.text = useStarInfo.m_Usage;
+            starModifier.m_UseStarInput.text = useStarInfo.m_Count.ToString();
         }
     }
 
     public void OnAddButtonClick()
     {
         GameObject newStarRecord = Instantiate(m_StarRecord.gameObject);
-        StarModifier newStarModifier = newStarRecord.GetComponent<StarModifier>();
+        UseStar newStarModifier = newStarRecord.GetComponent<UseStar>();
         newStarModifier.m_UsageInput.text = string.Empty;
-        newStarModifier.m_MaxStar.value = 3;
-        newStarModifier.m_MaxStarText.GetComponent<SliderValue>().OnValueChanged(newStarModifier.m_MaxStar);
         m_StringBuilder.Append("Star");
         m_StringBuilder.Append(m_StarModifiers.Count);
         newStarRecord.name = m_StringBuilder.ToString();
@@ -87,22 +83,13 @@ public class StarUsageModifer : MonoBehaviour
         {
             if (ReferenceEquals(btn, m_StarModifiers[i].m_DeleteButton))
             {
-                // 删除用途的时候要一并删除已经取得的星星记录。并提示会丢失多少颗星星。
-                long totalCount = Days.m_Instance.GetTotalCountByUsage(i);
-                if (totalCount > 0)
-                {
-                    m_StringBuilder.Append("删除");
-                    m_StringBuilder.Append(m_StarModifiers[i].m_UsageInput.text);
-                    m_StringBuilder.Append("会导致");
-                    m_StringBuilder.Append(totalCount);
-                    m_StringBuilder.Append("颗星星丢失，是否确定要删除？");
-                    MessageBox.Show("提示", m_StringBuilder.ToString(), MessageBox.Type.YesOrNo, TextAnchor.MiddleCenter, m_DeleteConfirmCallbackDelegate, i);
-                    m_StringBuilder.Clear();
-                }
-                else
-                {
-                    m_DeleteConfirmCallbackDelegate(MessageBox.ButtonID.Confirm, i);
-                }
+                m_StringBuilder.Append("是否确定要删除");
+                m_StringBuilder.Append(m_StarModifiers[i].m_UsageInput.text);
+                m_StringBuilder.Append("花掉");
+                m_StringBuilder.Append(m_StarModifiers[i].m_UseStarInput.text);
+                m_StringBuilder.Append("颗星星的记录？");
+                MessageBox.Show("提示", m_StringBuilder.ToString(), MessageBox.Type.YesOrNo, TextAnchor.MiddleCenter, m_DeleteConfirmCallbackDelegate, i);
+                m_StringBuilder.Clear();
                 break;
             }
         }
@@ -110,45 +97,40 @@ public class StarUsageModifer : MonoBehaviour
 
     public void Save()
     {
-        CustomStarUsage customStarUsage = CustomStarUsage.m_Instance;
-        int iPrevMax = customStarUsage.m_StarUsageCount;
-        int iMax = customStarUsage.m_StarUsageCount = m_StarModifiers.Count;
+        UseStarHistory useStarHistory = UseStarHistory.m_Instance;
+        int iPrevMax = useStarHistory.Count;
+        int iMax = m_StarModifiers.Count;
         for (int i = 0; i < iMax; i++)
         {
-            StarModifier starModifier = m_StarModifiers[i];
-            customStarUsage.ResetUsage(i, starModifier.m_UsageInput.text);
-            customStarUsage.ResetStarMaxCount(i, (byte)starModifier.m_MaxStar.value);
+            UseStar starModifier = m_StarModifiers[i];
+            UseStarInfo useStarInfo = useStarHistory.GetOrAdd(i);
+            useStarInfo.m_Usage = starModifier.m_UsageInput.text;
+            int.TryParse(starModifier.m_UseStarInput.text, out useStarInfo.m_Count);
         }
         for (int i = iMax; i < iPrevMax; i++)
         {
-            customStarUsage.ResetUsage(i, " ");
-            customStarUsage.ResetStarMaxCount(i, 0);
+            useStarHistory.RemoveAt(i);
         }
-        customStarUsage.Save();
+        useStarHistory.Save();
     }
 
     public bool ArchiveIsDirty()
     {
-        int starUsageCount = CustomStarUsage.m_Instance.m_StarUsageCount;
+        int useStarCount = UseStarHistory.m_Instance.Count;
         int userInterfaceCount = m_StarModifiers.Count;
         if (string.IsNullOrEmpty(m_StarModifiers[userInterfaceCount - 1].m_UsageInput.text))
         {
             userInterfaceCount--;
         }
-        if (starUsageCount != userInterfaceCount)
+        if (useStarCount != userInterfaceCount)
         {
             return true;
         }
-        for (int i = 0; i < starUsageCount; i++)
+        for (int i = 0; i < useStarCount; i++)
         {
-            string strUsage = CustomStarUsage.m_Instance.GetUsage(i);
-            StarModifier starModifier = m_StarModifiers[i];
-            if (strUsage != starModifier.m_UsageInput.text)
-            {
-                return true;
-            }
-            byte starMaxCount = CustomStarUsage.m_Instance.GetStarMaxCount(i);
-            if (starMaxCount != starModifier.m_MaxStar.value)
+            UseStarInfo useStarInfo = UseStarHistory.m_Instance.Get(i);
+            UseStar starModifier = m_StarModifiers[i];
+            if (useStarInfo.m_Usage != starModifier.m_UsageInput.text || useStarInfo.m_Count.ToString() != starModifier.m_UseStarInput.text)
             {
                 return true;
             }

@@ -30,6 +30,7 @@ public class Days
             if (di.IsDay(day))
             {
                 di.Modify(day);
+                Save();
                 return;
             }
         }

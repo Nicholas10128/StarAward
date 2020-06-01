@@ -1,10 +1,14 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class StarUsage : MonoBehaviour
 {
+    public MainWindow m_MainWindow;
     public StarRow m_StarRow;
+
+    public int totalStarCount { get; private set; }
 
     private Transform m_Transform;
     private GameObject m_StarRowTemplate;
@@ -13,6 +17,8 @@ public class StarUsage : MonoBehaviour
 
     private StarRow[] m_StarRows;
 
+    private DayInfo m_Today;
+
     void Start()
     {
         m_StarRow.TemplateInit();
@@ -20,6 +26,8 @@ public class StarUsage : MonoBehaviour
         m_StarRowTemplate = m_StarRow.gameObject;
 
         RefreshUI();
+
+        OnOpen();
     }
 
     public void RefreshUI()
@@ -62,21 +70,79 @@ public class StarUsage : MonoBehaviour
         }
     }
 
-    public void RefreshDay(DayInfo di)
+    public void OnStarChanged()
     {
+        totalStarCount = 0;
+        byte starCount;
+        int iMax = starRowCount - 1;
+        for (int i = 0; i < iMax; i++)
+        {
+            starCount = GetStarRow(i).selectedStars;
+            m_StringBuilder.Append(starCount);
+            totalStarCount += starCount;
+            m_StringBuilder.Append(".");
+        }
+        starCount = GetStarRow(iMax).selectedStars;
+        m_StringBuilder.Append(starCount);
+        totalStarCount += starCount;
+        string stars = m_StringBuilder.ToString();
+        m_StringBuilder.Clear();
+        m_Today.m_Stars = stars;
+        m_Today.Init();
+        Days.m_Instance.ModifyADay(m_Today);
+        m_MainWindow.OnStarCountChanged();
+    }
+
+    private void OnOpen()
+    {
+        DateTime today = DateTime.Now;
+        int dayCount = Days.m_Instance.Count;
+        for (int i = 0; i < dayCount; i++)
+        {
+            DayInfo day = Days.m_Instance.Get(i);
+            if (day.IsDay(today))
+            {
+                m_Today = day;
+                RefreshDay(day);
+                return;
+            }
+        }
+        int starUsageCount = CustomStarUsage.m_Instance.m_StarUsageCount - 1;
+        if (starUsageCount < 0)
+        {
+            m_Today = new DayInfo();
+            return;
+        }
+        for (int i = 0; i < starUsageCount; i++)
+        {
+            m_StringBuilder.Append("0");
+            m_StringBuilder.Append(".");
+        }
+        m_StringBuilder.Append("0");
+        string stars = m_StringBuilder.ToString();
+        m_StringBuilder.Clear();
+        m_Today = new DayInfo(today.Year, today.Month, today.Day, stars);
+        RefreshDay(m_Today);
+    }
+
+    private void RefreshDay(DayInfo di)
+    {
+        totalStarCount = 0;
         int iMax = di.starsCount;
         for (int i = 0; i < iMax; i++)
         {
             byte starCount = di.GetStarCount(i);
             if (starCount == 0)
             {
-                m_StarRows[i].OnStarClick(null);
+                m_StarRows[i].ClickStar(null, true);
             }
             else
             {
-                m_StarRows[i].OnStarClick(m_StarRows[i].m_Stars[starCount - 1]);
+                m_StarRows[i].ClickStar(m_StarRows[i].m_Stars[starCount - 1], true);
+                totalStarCount += starCount;
             }
         }
+        m_MainWindow.OnStarCountChanged();
     }
 
     public int starRowCount

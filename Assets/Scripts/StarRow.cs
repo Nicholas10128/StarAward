@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 public class StarRow : MonoBehaviour
 {
+    public StarUsage m_StarUsage;
     public GridLayoutGroup m_ParentGridLayoutGroup;
     public GridLayoutGroup m_GridLayoutGroup;
 
@@ -65,6 +66,11 @@ public class StarRow : MonoBehaviour
 
     public void OnStarClick(Button btn)
     {
+        ClickStar(btn, false);
+    }
+
+    public void ClickStar(Button btn, bool byScript)
+    {
         int iMax = m_Stars.Length;
         for (int i = 0; i < iMax; i++)
         {
@@ -73,11 +79,19 @@ public class StarRow : MonoBehaviour
                 selectedStars = (byte)(i + 1);
                 RefreshUI();
                 btn.OnDeselect(null);
+                if (!byScript)
+                {
+                    m_StarUsage.OnStarChanged();
+                }
                 return;
             }
         }
         selectedStars = 0;
         RefreshUI();
+        if (!byScript)
+        {
+            m_StarUsage.OnStarChanged();
+        }
     }
 
     public void OnScroll()
