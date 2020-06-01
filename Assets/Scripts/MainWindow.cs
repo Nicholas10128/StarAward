@@ -19,20 +19,16 @@ public class MainWindow : MonoBehaviour
     public Text m_DateToday;
     public Text m_StarToday;
     public Text m_StarCount;
-    //public ModifyADay m_ModifyADay;
+    public Image m_StarImage;
     public StarUsageModifer m_StarUsageModifer;
     public StarUsage m_StarUsage;
     public UseStarModifer m_UseStarModifer;
-    //public CustomStarUsageUI m_CustomStarUsageUI;
-    //public Canvas m_CustomStarUsage;
 
     public RectTransform[] m_TabButtons;
     private Vector3 m_UnselectScale = new Vector3(0.7f, 0.7f, 1f);
     private Vector3 m_SelectedScale = Vector3.one;
 
     public GameObject[] m_TabPages;
-
-    //public DaysSheet m_DaysSheet;
 
     private StringBuilder m_StringBuilder = new StringBuilder();
     private TabButtonUsage m_TabButtonUsage = TabButtonUsage.TBU_Stars;
@@ -61,56 +57,6 @@ public class MainWindow : MonoBehaviour
         MessageBox.Tick();
     }
 
-    void RefreshUI()
-    {
-        //m_DaysSheet.RefreshUI();
-        //m_ModifyADay.RefreshUI();
-        m_StarUsage.RefreshUI();
-    }
-
-    //public void OnCheckInTodayButtonClick()
-    //{
-    //    DateTime today = DateTime.Now;
-    //    int dayCount = Days.m_Instance.Count;
-    //    for (int i = 0; i < dayCount; i++)
-    //    {
-    //        DayInfo day = Days.m_Instance.Get(i);
-    //        if (day.IsDay(today))
-    //        {
-    //            //m_ModifyADay.OnOpen(day);
-    //            m_StarUsage.RefreshDay(day);
-    //            return;
-    //        }
-    //    }
-    //    int starUsageCount = CustomStarUsage.m_Instance.m_StarUsageCount - 1;
-    //    for (int i = 0; i < starUsageCount; i++)
-    //    {
-    //        m_StringBuilder.Append("0");
-    //        m_StringBuilder.Append(".");
-    //    }
-    //    m_StringBuilder.Append("0");
-    //    string stars = m_StringBuilder.ToString();
-    //    m_StringBuilder.Clear();
-    //    DayInfo newDay = new DayInfo(today.Year, today.Month, today.Day, stars);
-    //    //m_ModifyADay.OnOpen(newDay);
-    //    m_StarUsage.RefreshDay(newDay);
-    //}
-
-    //public void OnModifyADayButtonClick(int index)
-    //{
-    //    DayInfo di = Days.m_Instance.Get(index);
-    //    m_ModifyADay.OnOpen(di);
-    //}
-
-    //public void CloseModifyADay(bool modified)
-    //{
-    //    m_ModifyADay.OnClose();
-    //    if (modified)
-    //    {
-    //        RefreshUI();
-    //    }
-    //}
-
     public void OnTabButtonClick(int index)
     {
         if (m_TabButtonUsage == TabButtonUsage.TBU_Settings && index != (int)TabButtonUsage.TBU_Settings && m_StarUsageModifer.ArchiveIsDirty())
@@ -128,20 +74,6 @@ public class MainWindow : MonoBehaviour
         _OnTabButtonClick(index);
     }
 
-    //public void OnCustomStarUsageButtonClick()
-    //{
-    //    m_CustomStarUsageUI.OnOpen();
-    //}
-
-    public void CloseCustomStarUsageUI(bool modified)
-    {
-        //m_CustomStarUsageUI.OnClose();
-        if (modified)
-        {
-            RefreshUI();
-        }
-    }
-
     public void OnStarCountChanged()
     {
         m_StarCount.text = m_StarUsage.totalStarCount.ToString();
@@ -152,7 +84,8 @@ public class MainWindow : MonoBehaviour
         if (bid == MessageBox.ButtonID.Confirm)
         {
             m_StarUsageModifer.Save();
-            Days.m_Instance.ModifyDays();
+            m_StarUsage.RefreshUI();
+            m_StarUsage.RefreshToday();
         }
 
         _OnTabButtonClick((int)parameter);
@@ -181,17 +114,22 @@ public class MainWindow : MonoBehaviour
         {
             case TabButtonUsage.TBU_Settings:
                 m_StarUsageModifer.RefreshUI();
+                m_StarToday.text = string.Empty;
+                m_StarCount.text = string.Empty;
+                m_StarImage.enabled = false;
                 break;
             case TabButtonUsage.TBU_Stars:
                 m_StarUsage.RefreshUI();
                 m_StarToday.text = "今日获得星星";
                 m_StarCount.text = m_StarUsage.totalStarCount.ToString();
+                m_StarImage.enabled = true;
                 break;
             case TabButtonUsage.TBU_Spend:
                 m_UseStarModifer.RefreshUI();
                 m_StarToday.text = "你共拥有星星";
                 long starCountLeft = Days.m_Instance.GetTotalCountByUsage(-1) - UseStarHistory.m_Instance.GetTotalCount();
                 m_StarCount.text = starCountLeft.ToString();
+                m_StarImage.enabled = true;
                 break;
         }
     }

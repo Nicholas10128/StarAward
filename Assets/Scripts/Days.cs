@@ -38,15 +38,6 @@ public class Days
         Save();
     }
 
-    public void ModifyDays()
-    {
-        foreach (DayInfo di in m_Days)
-        {
-            di.Modify();
-        }
-        Save();
-    }
-
     public void Reload()
     {
         m_Days.Clear();
@@ -89,5 +80,48 @@ public class Days
             }
         }
         return totalCount;
+    }
+
+    public long GetTodayCountByUsage(int usage)
+    {
+        long totalCount = 0;
+        if (usage >= 0)
+        {
+            foreach (DayInfo di in m_Days)
+            {
+                if (di.IsToday())
+                {
+                    totalCount += di.GetStarCount(usage);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0, iMax = CustomStarUsage.m_Instance.m_StarUsageCount; i < iMax; i++)
+            {
+                foreach (DayInfo di in m_Days)
+                {
+                    if (di.IsToday())
+                    {
+                        totalCount += di.GetStarCount(i);
+                        break;
+                    }
+                }
+            }
+        }
+        return totalCount;
+    }
+
+    public void RemoveTodayCount(int index)
+    {
+        foreach (DayInfo di in m_Days)
+        {
+            if (di.IsToday())
+            {
+                di.RemoveCount(index);
+                break;
+            }
+        }
     }
 }

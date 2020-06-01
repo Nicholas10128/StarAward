@@ -70,6 +70,11 @@ public class StarUsage : MonoBehaviour
         }
     }
 
+    public void RefreshToday()
+    {
+        RefreshDay(m_Today);
+    }
+
     public void OnStarChanged()
     {
         totalStarCount = 0;
@@ -77,11 +82,15 @@ public class StarUsage : MonoBehaviour
         int iMax = starRowCount - 1;
         for (int i = 0; i < iMax; i++)
         {
+            m_StringBuilder.Append(CustomStarUsage.m_Instance.GetUsage(i));
+            m_StringBuilder.Append("|");
             starCount = GetStarRow(i).selectedStars;
             m_StringBuilder.Append(starCount);
             totalStarCount += starCount;
             m_StringBuilder.Append(".");
         }
+        m_StringBuilder.Append(CustomStarUsage.m_Instance.GetUsage(iMax));
+        m_StringBuilder.Append("|");
         starCount = GetStarRow(iMax).selectedStars;
         m_StringBuilder.Append(starCount);
         totalStarCount += starCount;
@@ -115,10 +124,10 @@ public class StarUsage : MonoBehaviour
         }
         for (int i = 0; i < starUsageCount; i++)
         {
-            m_StringBuilder.Append("0");
+            m_StringBuilder.Append("|0");
             m_StringBuilder.Append(".");
         }
-        m_StringBuilder.Append("0");
+        m_StringBuilder.Append("|0");
         string stars = m_StringBuilder.ToString();
         m_StringBuilder.Clear();
         m_Today = new DayInfo(today.Year, today.Month, today.Day, stars);
@@ -128,7 +137,7 @@ public class StarUsage : MonoBehaviour
     private void RefreshDay(DayInfo di)
     {
         totalStarCount = 0;
-        int iMax = di.starsCount;
+        int iMax = Mathf.Min(di.starsCount, m_StarRows.Length);
         for (int i = 0; i < iMax; i++)
         {
             byte starCount = di.GetStarCount(i);

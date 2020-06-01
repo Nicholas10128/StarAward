@@ -9,6 +9,7 @@ public class DayInfo
     public int m_Day;
     public string m_Stars;
 
+    private string[] m_StarsName;
     private byte[] m_StarsCount;
 
     private StringBuilder m_StringBuilder = new StringBuilder();
@@ -19,6 +20,11 @@ public class DayInfo
         {
             return m_StarsCount.Length;
         }
+    }
+
+    public string GetStarName(int index)
+    {
+        return m_StarsName[index];
     }
 
     public byte GetStarCount(int index)
@@ -49,10 +55,22 @@ public class DayInfo
     {
         string[] strs = m_Stars.Split('.');
         int iMax = strs.Length;
-        m_StarsCount = new byte[Mathf.Max(CustomStarUsage.m_Instance.m_StarUsageCount, iMax)];
+        m_StarsName = new string[Mathf.Max(CustomStarUsage.m_Instance.m_StarUsageCount, iMax)];
+        m_StarsCount = new byte[m_StarsName.Length];
         for (int i = 0; i < iMax; i++)
         {
-            if (!byte.TryParse(strs[i], out m_StarsCount[i]))
+            string[] nameAndCount = strs[i].Split('|');
+            string strCount = null;
+            if (nameAndCount.Length == 1) // Old version archive.
+            {
+                strCount = nameAndCount[0];
+            }
+            else
+            {
+                m_StarsName[i] = nameAndCount[0];
+                strCount = nameAndCount[1];
+            }
+            if (!byte.TryParse(strCount, out m_StarsCount[i]))
             {
                 Debug.LogError("It's invalid star count: " + strs[i]);
                 break;
@@ -64,24 +82,6 @@ public class DayInfo
     {
         m_Stars = day.m_Stars;
         Init();
-    }
-
-    public void Modify()
-    {
-        byte[] originStarCount = m_StarsCount;
-        int iMax = CustomStarUsage.m_Instance.m_StarUsageCount;
-        m_StarsCount = new byte[iMax];
-        iMax = Mathf.Min(iMax, originStarCount.Length) - 1;
-        for (int i = 0; i < iMax; i++)
-        {
-            m_StarsCount[i] = originStarCount[i];
-            m_StringBuilder.Append(m_StarsCount[i]);
-            m_StringBuilder.Append('.');
-        }
-        m_StarsCount[iMax] = originStarCount[iMax];
-        m_StringBuilder.Append(m_StarsCount[iMax]);
-        m_Stars = m_StringBuilder.ToString();
-        m_StringBuilder.Clear();
     }
 
     public bool IsToday()
@@ -97,5 +97,23 @@ public class DayInfo
     public bool IsDay(DayInfo day)
     {
         return m_Year == day.m_Year && m_Month == day.m_Month && m_Day == day.m_Day;
+    }
+
+    public void RemoveCount(int index)
+    {
+        int count = starsCount - 1;
+        string[] newNames = new string[count];
+        byte[] newCounts = new byte[count];
+        for (int i = 0, j = 0; i < count; i++, j++)
+        {
+            if (i == index)
+            {
+                j++;
+            }
+            newNames[i] = m_StarsName[j];
+            newCounts[i] = m_StarsCount[j];
+        }
+        m_StarsName = newNames;
+        m_StarsCount = newCounts;
     }
 }

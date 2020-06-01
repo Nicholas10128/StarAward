@@ -88,7 +88,7 @@ public class StarUsageModifer : MonoBehaviour
             if (ReferenceEquals(btn, m_StarModifiers[i].m_DeleteButton))
             {
                 // 删除用途的时候要一并删除已经取得的星星记录。并提示会丢失多少颗星星。
-                long totalCount = Days.m_Instance.GetTotalCountByUsage(i);
+                long totalCount = Days.m_Instance.GetTodayCountByUsage(i);
                 if (totalCount > 0)
                 {
                     m_StringBuilder.Append("删除");
@@ -177,6 +177,7 @@ public class StarUsageModifer : MonoBehaviour
             {
                 m_StarRecord = m_StarModifiers[0];
             }
+            Days.m_Instance.RemoveTodayCount(i);
         }
     }
 }
