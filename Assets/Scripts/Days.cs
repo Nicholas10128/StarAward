@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 using Sinbad;
 
 public class Days
@@ -58,6 +59,49 @@ public class Days
         if (m_Days.Count > 0)
         {
             CsvUtil.SaveObjects(m_Days, m_ArchiveFilePath);
+        }
+    }
+
+    public void Desearialize(NetworkReader reader)
+    {
+        int count = reader.ReadInt32();
+        m_Days.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            DayInfo di = new DayInfo();
+            di.m_Year = reader.ReadInt16();
+            di.m_Month = reader.ReadByte();
+            di.m_Day = reader.ReadByte();
+            int starsCount = reader.ReadByte();
+            di.RebuildStarName(starsCount);
+            di.RebuildStarCount(starsCount);
+            for (int j = 0; j < starsCount; j++)
+            {
+                di.SetStarName(j, reader.ReadString());
+                di.SetStarCount(j, reader.ReadByte());
+            }
+            di.OnRebuild();
+            m_Days.Add(di);
+        }
+    }
+
+    public void Searialize(NetworkWriter writer)
+    {
+        int count = m_Days.Count;
+        writer.Write(count);
+        for (int i = 0; i < count; i++)
+        {
+            DayInfo di = m_Days[i];
+            writer.Write((short)di.m_Year);
+            writer.Write((byte)di.m_Month);
+            writer.Write((byte)di.m_Day);
+            int starsCount = di.starsCount;
+            writer.Write((byte)di.starsCount);
+            for (int j = 0; j < starsCount; j++)
+            {
+                writer.Write(di.GetStarName(j));
+                writer.Write(di.GetStarCount(j));
+            }
         }
     }
 

@@ -2,6 +2,7 @@
 using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 using Sinbad;
 
 public class CustomStarUsage
@@ -67,7 +68,7 @@ public class CustomStarUsage
     public string m_StarUsage49 = " ";
     public string m_StarUsage50 = " ";
 
-    private byte[] m_StarsMaxCount = new byte[50];
+    private byte[] m_StarsMaxCount = new byte[MAX_COUNT];
 
     private string m_ArchiveFilePath = Application.persistentDataPath + "/starUsage.csv";
     private StringBuilder m_StringBuilder = new StringBuilder();
@@ -118,6 +119,26 @@ public class CustomStarUsage
             m_Instance.ResetUsage(i, m_StringListBuffer[i]);
         }
         m_StringListBuffer.Clear();
+    }
+
+    public void Desearialize(NetworkReader reader)
+    {
+        m_StarUsageCount = reader.ReadInt32();
+        for (int i = 0; i < MAX_COUNT; i++)
+        {
+            ResetUsage(i, reader.ReadString());
+            ResetStarMaxCount(i, reader.ReadByte());
+        }
+    }
+
+    public void Searialize(NetworkWriter writer)
+    {
+        writer.Write(m_StarUsageCount);
+        for (int i = 0; i < MAX_COUNT; i++)
+        {
+            writer.Write(GetUsage(i));
+            writer.Write(GetStarMaxCount(i));
+        }
     }
 
     public string GetUsage(int index)

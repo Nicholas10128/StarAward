@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 using Sinbad;
 
 public class UseStarHistory
@@ -51,6 +52,31 @@ public class UseStarHistory
         if (m_UseStars.Count > 0)
         {
             CsvUtil.SaveObjects(m_UseStars, m_ArchiveFilePath);
+        }
+    }
+
+    public void Desearialize(NetworkReader reader)
+    {
+        int count = reader.ReadInt32();
+        m_UseStars.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            UseStarInfo usi = new UseStarInfo();
+            usi.m_Usage = reader.ReadString();
+            usi.m_Count = reader.ReadInt32();
+            m_UseStars.Add(usi);
+        }
+    }
+
+    public void Searialize(NetworkWriter writer)
+    {
+        int count = m_UseStars.Count;
+        writer.Write(count);
+        for (int i = 0; i < count; i++)
+        {
+            UseStarInfo usi = m_UseStars[i];
+            writer.Write(usi.m_Usage);
+            writer.Write(usi.m_Count);
         }
     }
 

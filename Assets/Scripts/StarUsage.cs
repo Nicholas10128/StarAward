@@ -30,6 +30,11 @@ public class StarUsage : MonoBehaviour
         OnOpen();
     }
 
+    public void OnSync()
+    {
+        OnOpen();
+    }
+
     public void RefreshUI()
     {
         int starUsageCount = CustomStarUsage.m_Instance.m_StarUsageCount;

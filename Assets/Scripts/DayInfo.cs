@@ -22,14 +22,52 @@ public class DayInfo
         }
     }
 
+    public void RebuildStarName(int count)
+    {
+        m_StarsName = new string[count];
+    }
+
     public string GetStarName(int index)
     {
         return m_StarsName[index];
     }
 
+    public void SetStarName(int index, string name)
+    {
+        m_StarsName[index] = name;
+    }
+
+    public void RebuildStarCount(int count)
+    {
+        m_StarsCount = new byte[count];
+    }
+
     public byte GetStarCount(int index)
     {
         return m_StarsCount[index];
+    }
+
+    public void SetStarCount(int index, byte count)
+    {
+        m_StarsCount[index] = count;
+    }
+
+    public void OnRebuild()
+    {
+        int iMax = starsCount - 1;
+        for (int i = 0; i < iMax; i++)
+        {
+            m_StringBuilder.Append(m_StarsName[i]);
+            m_StringBuilder.Append("|");
+            m_StringBuilder.Append(m_StarsCount[i]);
+            m_StringBuilder.Append(".");
+        }
+        m_StringBuilder.Append(m_StarsName[iMax]);
+        m_StringBuilder.Append("|");
+        m_StringBuilder.Append(m_StarsCount[iMax]);
+        string stars = m_StringBuilder.ToString();
+        m_StringBuilder.Clear();
+        m_Stars = stars;
     }
 
     public DayInfo()

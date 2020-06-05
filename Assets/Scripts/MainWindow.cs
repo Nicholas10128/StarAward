@@ -13,9 +13,8 @@ public class MainWindow : MonoBehaviour
         TBU_Spend
     }
 
-    public Transform m_ContentNode;
-
     public Canvas m_MainWindow;
+    public Canvas m_SyncArchive;
     public Text m_DateToday;
     public Text m_StarToday;
     public Text m_StarCount;
@@ -55,6 +54,19 @@ public class MainWindow : MonoBehaviour
     void Update()
     {
         MessageBox.Tick();
+    }
+
+    public void OnSync()
+    {
+        m_StarUsage.OnSync();
+        CustomStarUsage.m_Instance.Save();
+        UseStarHistory.m_Instance.Save();
+        Days.m_Instance.Save();
+    }
+
+    public void OnSyncArchiveButtonClick()
+    {
+        m_SyncArchive.enabled = true;
     }
 
     public void OnTabButtonClick(int index)

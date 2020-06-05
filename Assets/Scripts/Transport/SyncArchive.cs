@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Networking;
 using UnityEngine.Networking.Types;
 using UnityEngine.Networking.Match;
@@ -6,12 +7,41 @@ using System.Collections.Generic;
 
 public class SyncArchive : MonoBehaviour
 {
+    public MainWindow m_MainWindow;
+    public InputField m_InputField;
+    public Text m_StateDisplay;
+    public GameObject m_CreateButton;
+    public GameObject m_JoinButton;
+    public GameObject m_ShutdownButton;
+    public GameObject m_SyncButton;
+
+    private const int VERSION_ID = 1;
+
+    // Do not remove or modify the exist protocols.
+    private enum Protocol
+    {
+        VersionCheckNtf = 10001,
+        SyncArchive1 = 20001,
+        SyncArchive2 = 20002,
+        SyncArchive3 = 20003,
+    }
+
+    private enum SyncState
+    {
+        CheckVersion,
+        Sync
+    }
+
+    private Canvas m_Canvas;
+
+    private SyncState m_SyncState = SyncState.CheckVersion;
+
+    private bool m_IsDirty;
+
     // Matchmaker related
-    List<MatchInfoSnapshot> m_MatchList = new List<MatchInfoSnapshot>();
     bool m_MatchCreated;
     bool m_MatchJoined;
     MatchInfo m_MatchInfo;
-    string m_MatchName = "NewRoom";
     NetworkMatch m_NetworkMatch;
 
     // Connection/communication related
@@ -19,8 +49,6 @@ public class SyncArchive : MonoBehaviour
     // On the server there will be multiple connections, on the client this will only contain one ID
     List<int> m_ConnectionIds = new List<int>();
     byte[] m_ReceiveBuffer;
-    string m_NetworkMessage = "Hello world";
-    string m_LastReceivedMessage = "";
     NetworkWriter m_Writer;
     NetworkReader m_Reader;
     bool m_ConnectionEstablished;
@@ -35,10 +63,15 @@ public class SyncArchive : MonoBehaviour
 
     void Start()
     {
+        m_InputField.text = PlayerPrefs.GetString("BabyName", string.Empty);
+        m_Canvas = GetComponent<Canvas>();
+        m_CreateButton.SetActive(true);
+        m_JoinButton.SetActive(true);
+        m_ShutdownButton.SetActive(false);
+        m_SyncButton.SetActive(m_SyncState == SyncState.Sync);
+
         m_ReceiveBuffer = new byte[k_MaxMessageSize];
         m_Writer = new NetworkWriter();
-        // While testing with multiple standalone players on one machine this will need to be enabled
-        Application.runInBackground = true;
     }
 
     void OnApplicationQuit()
@@ -46,91 +79,97 @@ public class SyncArchive : MonoBehaviour
         NetworkTransport.Shutdown();
     }
 
-    void OnGUI()
+    public void OnCreateButtonClick()
     {
-        //if (string.IsNullOrEmpty(Application.cloudProjectId))
-        //    GUILayout.Label("You must set up the project first. See the Multiplayer tab in the Service Window");
-        //else
-        //    GUILayout.Label("Cloud Project ID: " + Application.cloudProjectId);
+        string strBabyName = m_InputField.text;
+        m_NetworkMatch.CreateMatch(strBabyName, 4, true, "", "", "", 0, 0, OnMatchCreate);
+        PlayerPrefs.SetString("BabyName", strBabyName);
+        m_StateDisplay.text = "开始连接中转服务器";
+    }
 
-        //if (m_MatchJoined)
-        //    GUILayout.Label("Match joined '" + m_MatchName + "' on Matchmaker server");
-        //else if (m_MatchCreated)
-        //    GUILayout.Label("Match '" + m_MatchName + "' created on Matchmaker server");
+    public void OnJoinButtonClick()
+    {
+        string strBabyName = m_InputField.text;
+        m_NetworkMatch.ListMatches(0, 1, m_InputField.text, true, 0, 0, (success, info, matches) =>
+        {
+            if (success && matches.Count > 0)
+            {
+                m_NetworkMatch.JoinMatch(matches[0].networkId, "", "", "", 0, 0, OnMatchJoined);
+            }
+            else
+            {
+                m_StateDisplay.text = "没有找到与宝贝名字相同的连接";
+            }
+        });
+        PlayerPrefs.SetString("BabyName", strBabyName);
+        m_StateDisplay.text = "正在连接中";
+    }
 
-        //GUILayout.Label("Connection Established: " + m_ConnectionEstablished);
+    public void OnShutdownButtonClick()
+    {
+        m_StateDisplay.text = "已断开与服务器的连接";
+        m_NetworkMatch.DropConnection(m_MatchInfo.networkId, m_MatchInfo.nodeId, 0, OnConnectionDropped);
+        m_CreateButton.SetActive(true);
+        m_JoinButton.SetActive(true);
+        m_ShutdownButton.SetActive(false);
+    }
 
-        //if (m_MatchCreated || m_MatchJoined)
-        //{
-        //    GUILayout.Label("Relay Server: " + m_MatchInfo.address + ":" + m_MatchInfo.port);
-        //    GUILayout.Label("NetworkID: " + m_MatchInfo.networkId + " NodeID: " + m_MatchInfo.nodeId);
-        //    GUILayout.BeginHorizontal();
-        //    GUILayout.Label("Outgoing message:");
-        //    m_NetworkMessage = GUILayout.TextField(m_NetworkMessage);
-        //    GUILayout.EndHorizontal();
-        //    GUILayout.Label("Last incoming message: " + m_LastReceivedMessage);
+    public void OnSyncButtonClick()
+    {
+        if (m_ConnectionEstablished)
+        {
+            m_Writer.SeekZero();
+            m_Writer.Write((int)Protocol.SyncArchive1);
+            CustomStarUsage.m_Instance.Searialize(m_Writer);
+            byte error;
+            for (int i = 0; i < m_ConnectionIds.Count; ++i)
+            {
+                NetworkTransport.Send(m_HostId, m_ConnectionIds[i], 0, m_Writer.AsArray(), m_Writer.Position, out error);
+                if ((NetworkError)error != NetworkError.Ok)
+                {
+                    Debug.LogError("Failed to send message: " + (NetworkError)error);
+                }
+            }
+            m_Writer.SeekZero();
+            m_Writer.Write((int)Protocol.SyncArchive2);
+            Days.m_Instance.Searialize(m_Writer);
+            for (int i = 0; i < m_ConnectionIds.Count; ++i)
+            {
+                NetworkTransport.Send(m_HostId, m_ConnectionIds[i], 0, m_Writer.AsArray(), m_Writer.Position, out error);
+                if ((NetworkError)error != NetworkError.Ok)
+                {
+                    Debug.LogError("Failed to send message: " + (NetworkError)error);
+                }
+            }
+            m_Writer.SeekZero();
+            m_Writer.Write((int)Protocol.SyncArchive3);
+            UseStarHistory.m_Instance.Searialize(m_Writer);
+            for (int i = 0; i < m_ConnectionIds.Count; ++i)
+            {
+                NetworkTransport.Send(m_HostId, m_ConnectionIds[i], 0, m_Writer.AsArray(), m_Writer.Position, out error);
+                if ((NetworkError)error != NetworkError.Ok)
+                {
+                    Debug.LogError("Failed to send message: " + (NetworkError)error);
+                }
+            }
+        }
+    }
 
-        //    if (m_ConnectionEstablished && GUILayout.Button("Send message"))
-        //    {
-        //        m_Writer.SeekZero();
-        //        m_Writer.Write(m_NetworkMessage);
-        //        byte error;
-        //        for (int i = 0; i < m_ConnectionIds.Count; ++i)
-        //        {
-        //            NetworkTransport.Send(m_HostId,
-        //                m_ConnectionIds[i], 0, m_Writer.AsArray(), m_Writer.Position, out error);
-        //            if ((NetworkError)error != NetworkError.Ok)
-        //                Debug.LogError("Failed to send message: " + (NetworkError)error);
-        //        }
-        //    }
-
-        //    if (GUILayout.Button("Shutdown"))
-        //    {
-        //        m_NetworkMatch.DropConnection(m_MatchInfo.networkId,
-        //            m_MatchInfo.nodeId, 0, OnConnectionDropped);
-        //    }
-        //}
-        //else
-        //{
-        //    if (GUILayout.Button("Create Room"))
-        //    {
-        //        m_NetworkMatch.CreateMatch(m_MatchName, 4, true, "", "", "", 0, 0, OnMatchCreate);
-        //    }
-
-        //    if (GUILayout.Button("Join first found match"))
-        //    {
-        //        m_NetworkMatch.ListMatches(0, 1, "", true, 0, 0, (success, info, matches) =>
-        //        {
-        //            if (success && matches.Count > 0)
-        //                m_NetworkMatch.JoinMatch(matches[0].networkId, "", "", "", 0, 0, OnMatchJoined);
-        //        });
-        //    }
-
-        //    if (GUILayout.Button("List rooms"))
-        //    {
-        //        m_NetworkMatch.ListMatches(0, 20, "", true, 0, 0, OnMatchList);
-        //    }
-
-        //    if (m_MatchList.Count > 0)
-        //    {
-        //        GUILayout.Label("Current rooms:");
-        //    }
-        //    foreach (var match in m_MatchList)
-        //    {
-        //        if (GUILayout.Button(match.name))
-        //        {
-        //            m_NetworkMatch.JoinMatch(match.networkId, "", "", "", 0, 0, OnMatchJoined);
-        //        }
-        //    }
-        //}
+    public void OnCloseButtonClick()
+    {
+        if (m_IsDirty)
+        {
+            m_MainWindow.OnSync();
+            m_IsDirty = false;
+        }
+        m_Canvas.enabled = false;
     }
 
     public void OnConnectionDropped(bool success, string extendedInfo)
     {
-        Debug.Log("Connection has been dropped on matchmaker server");
+        m_StateDisplay.text = "服务器已断开连接";
         NetworkTransport.Shutdown();
         m_HostId = -1;
-        m_ConnectionIds.Clear();
         m_MatchInfo = null;
         m_MatchCreated = false;
         m_MatchJoined = false;
@@ -141,60 +180,45 @@ public class SyncArchive : MonoBehaviour
     {
         if (success)
         {
-            Debug.Log("Create match succeeded");
+            m_StateDisplay.text = "已开始匹配";
             Utility.SetAccessTokenForNetwork(matchInfo.networkId, matchInfo.accessToken);
 
             m_MatchCreated = true;
             m_MatchInfo = matchInfo;
 
-            StartServer(matchInfo.address, matchInfo.port, matchInfo.networkId,
-                matchInfo.nodeId);
+            StartServer(matchInfo.address, matchInfo.port, matchInfo.networkId, matchInfo.nodeId);
+
+            OnConnection();
         }
         else
         {
-            Debug.LogError("Create match failed: " + extendedInfo);
+            m_StateDisplay.text = "匹配失败：" + extendedInfo;
         }
     }
 
-    public void OnMatchList(bool success, string extendedInfo, List<MatchInfoSnapshot> matches)
-    {
-        if (success && matches != null)
-        {
-            m_MatchList = matches;
-        }
-        else if (!success)
-        {
-            Debug.LogError("List match failed: " + extendedInfo);
-        }
-    }
-
-    // When we've joined a match we connect to the server/host
     public virtual void OnMatchJoined(bool success, string extendedInfo, MatchInfo matchInfo)
     {
         if (success)
         {
-            Debug.Log("Join match succeeded");
             Utility.SetAccessTokenForNetwork(matchInfo.networkId, matchInfo.accessToken);
 
             m_MatchJoined = true;
             m_MatchInfo = matchInfo;
 
-            Debug.Log("Connecting to Address:" + matchInfo.address +
-                " Port:" + matchInfo.port +
-                " NetworKID: " + matchInfo.networkId +
-                " NodeID: " + matchInfo.nodeId);
-            ConnectThroughRelay(matchInfo.address, matchInfo.port, matchInfo.networkId,
-                matchInfo.nodeId);
+            m_StateDisplay.text = "已与目标建立连接：" + matchInfo.address + " Port:" + matchInfo.port + " NetworKID: " + matchInfo.networkId + " NodeID: " + matchInfo.nodeId;
+            ConnectThroughRelay(matchInfo.address, matchInfo.port, matchInfo.networkId, matchInfo.nodeId);
+
+            OnConnection();
         }
         else
         {
-            Debug.LogError("Join match failed: " + extendedInfo);
+            m_StateDisplay.text = "服务器连接失败：" + extendedInfo;
         }
     }
 
     void SetupHost(bool isServer)
     {
-        Debug.Log("Initializing network transport");
+        m_StateDisplay.text = "正在初始化网络连接";
         NetworkTransport.Init();
         var config = new ConnectionConfig();
         config.AddChannel(QosType.Reliable);
@@ -211,8 +235,7 @@ public class SyncArchive : MonoBehaviour
         SetupHost(true);
 
         byte error;
-        NetworkTransport.ConnectAsNetworkHost(
-            m_HostId, relayIp, relayPort, networkId, Utility.GetSourceID(), nodeId, out error);
+        NetworkTransport.ConnectAsNetworkHost(m_HostId, relayIp, relayPort, networkId, Utility.GetSourceID(), nodeId, out error);
     }
 
     void ConnectThroughRelay(string relayIp, int relayPort, NetworkID networkId, NodeID nodeId)
@@ -220,8 +243,19 @@ public class SyncArchive : MonoBehaviour
         SetupHost(false);
 
         byte error;
-        NetworkTransport.ConnectToNetworkPeer(
-            m_HostId, relayIp, relayPort, 0, 0, networkId, Utility.GetSourceID(), nodeId, out error);
+        NetworkTransport.ConnectToNetworkPeer(m_HostId, relayIp, relayPort, 0, 0, networkId, Utility.GetSourceID(), nodeId, out error);
+    }
+
+    void OnConnection()
+    {
+        if (m_MatchCreated || m_MatchJoined)
+        {
+            m_CreateButton.SetActive(false);
+            m_JoinButton.SetActive(false);
+            m_ShutdownButton.SetActive(true);
+
+            m_SyncState = SyncState.CheckVersion;
+        }
     }
 
     void Update()
@@ -235,50 +269,101 @@ public class SyncArchive : MonoBehaviour
         int receivedSize;
         byte error;
 
-        // Get events from the relay connection
         networkEvent = NetworkTransport.ReceiveRelayEventFromHost(m_HostId, out error);
         if (networkEvent == NetworkEventType.ConnectEvent)
-            Debug.Log("Relay server connected");
+        {
+            m_StateDisplay.text = "已连接中转服务器";
+        }
         if (networkEvent == NetworkEventType.DisconnectEvent)
-            Debug.Log("Relay server disconnected");
+        {
+            m_StateDisplay.text = "与中转服务器断开连接";
+        }
 
         do
         {
-            // Get events from the server/client game connection
-            networkEvent = NetworkTransport.ReceiveFromHost(m_HostId, out connectionId, out channelId,
-                m_ReceiveBuffer, (int)m_ReceiveBuffer.Length, out receivedSize, out error);
+            networkEvent = NetworkTransport.ReceiveFromHost(m_HostId, out connectionId, out channelId, m_ReceiveBuffer, m_ReceiveBuffer.Length, out receivedSize, out error);
             if ((NetworkError)error != NetworkError.Ok)
             {
-                Debug.LogError("Error while receiveing network message: " + (NetworkError)error);
+                m_StateDisplay.text = "接收网络数据时发生错误：" + (NetworkError)error;
             }
 
             switch (networkEvent)
             {
                 case NetworkEventType.ConnectEvent:
                     {
-                        Debug.Log("Connected through relay, ConnectionID:" + connectionId +
-                            " ChannelID:" + channelId);
-                        m_ConnectionEstablished = true;
-                        m_ConnectionIds.Add(connectionId);
+                        m_StateDisplay.text = "已通过中转服务器建立连接：" + connectionId + " ChannelID:" + channelId;
+                        if (m_ConnectionEstablished = true)
+                        {
+                            m_ConnectionIds.Add(connectionId);
+                            m_Writer.SeekZero();
+                            m_Writer.Write((int)Protocol.VersionCheckNtf);
+                            m_Writer.Write(VERSION_ID);
+                            for (int i = 0; i < m_ConnectionIds.Count; ++i)
+                            {
+                                NetworkTransport.Send(m_HostId, m_ConnectionIds[i], 0, m_Writer.AsArray(), m_Writer.Position, out error);
+                                if ((NetworkError)error != NetworkError.Ok)
+                                {
+                                    Debug.LogError("Failed to send message: " + (NetworkError)error);
+                                }
+                            }
+                        }
                         break;
                     }
                 case NetworkEventType.DataEvent:
                     {
-                        Debug.Log("Data event, ConnectionID:" + connectionId +
-                            " ChannelID: " + channelId +
-                            " Received Size: " + receivedSize);
+                        m_StateDisplay.text = "收到一个协议包:" + connectionId + " ChannelID: " + channelId + " Received Size: " + receivedSize;
                         m_Reader = new NetworkReader(m_ReceiveBuffer);
-                        m_LastReceivedMessage = m_Reader.ReadString();
+                        ProcessProtocol();
                         break;
                     }
                 case NetworkEventType.DisconnectEvent:
                     {
-                        Debug.Log("Connection disconnected, ConnectionID:" + connectionId);
+                        m_StateDisplay.text = "与中转服务器断开连接：" + connectionId;
+                        m_CreateButton.SetActive(true);
+                        m_JoinButton.SetActive(true);
+                        m_ShutdownButton.SetActive(false);
                         break;
                     }
                 case NetworkEventType.Nothing:
                     break;
             }
         } while (networkEvent != NetworkEventType.Nothing);
+    }
+
+    void ProcessProtocol()
+    {
+        int nProtocol = m_Reader.ReadInt32();
+        switch(nProtocol)
+        {
+            case (int)Protocol.VersionCheckNtf:
+                int nVersionId = m_Reader.ReadInt32();
+                m_SyncState = nVersionId == VERSION_ID ? SyncState.Sync : SyncState.CheckVersion;
+                bool canSync = m_SyncState == SyncState.Sync;
+                m_SyncButton.SetActive(canSync);
+                if (canSync)
+                {
+                    m_StateDisplay.text = "版本验证通过，可以同步存档";
+                }
+                else
+                {
+                    m_StateDisplay.text = "和对方的版本不同，无法同步存档";
+                }
+                break;
+            case (int)Protocol.SyncArchive1:
+                CustomStarUsage.m_Instance.Desearialize(m_Reader);
+                m_IsDirty = true;
+                break;
+            case (int)Protocol.SyncArchive2:
+                Days.m_Instance.Desearialize(m_Reader);
+                m_IsDirty = true;
+                break;
+            case (int)Protocol.SyncArchive3:
+                UseStarHistory.m_Instance.Desearialize(m_Reader);
+                m_IsDirty = true;
+                break;
+            default:
+                m_StateDisplay.text = "不能识别的网络消息：" + nProtocol;
+                break;
+        }
     }
 }
