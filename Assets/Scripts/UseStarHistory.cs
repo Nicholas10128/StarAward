@@ -62,6 +62,7 @@ public class UseStarHistory
         for (int i = 0; i < count; i++)
         {
             UseStarInfo usi = new UseStarInfo();
+            usi.m_Date = reader.ReadString();
             usi.m_Usage = reader.ReadString();
             usi.m_Count = reader.ReadInt32();
             m_UseStars.Add(usi);
@@ -75,6 +76,7 @@ public class UseStarHistory
         for (int i = 0; i < count; i++)
         {
             UseStarInfo usi = m_UseStars[i];
+            writer.Write(usi.m_Date);
             writer.Write(usi.m_Usage);
             writer.Write(usi.m_Count);
         }

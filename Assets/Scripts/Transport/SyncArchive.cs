@@ -15,7 +15,7 @@ public class SyncArchive : MonoBehaviour
     public GameObject m_ShutdownButton;
     public GameObject m_SyncButton;
 
-    private const int VERSION_ID = 1;
+    private const int VERSION_ID = 2;
 
     // Do not remove or modify the exist protocols.
     private enum Protocol

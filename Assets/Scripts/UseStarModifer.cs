@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -52,6 +53,11 @@ public class UseStarModifer : MonoBehaviour
             UseStarInfo useStarInfo = UseStarHistory.m_Instance.Get(i);
             starModifier.m_UsageInput.text = useStarInfo.m_Usage;
             starModifier.m_UseStarInput.text = useStarInfo.m_Count.ToString();
+            if (string.IsNullOrEmpty(useStarInfo.m_Date))
+            {
+                useStarInfo.m_Date = DateTime.Now.ToString("yyyy年M月d日");
+            }
+            starModifier.m_Date.text = useStarInfo.m_Date;
         }
     }
 
@@ -60,6 +66,7 @@ public class UseStarModifer : MonoBehaviour
         GameObject newStarRecord = Instantiate(m_StarRecord.gameObject);
         UseStar newStarModifier = newStarRecord.GetComponent<UseStar>();
         newStarModifier.m_UsageInput.text = string.Empty;
+        newStarModifier.m_Date.text = DateTime.Now.ToString("yyyy年M月d日");
         m_StringBuilder.Append("Star");
         m_StringBuilder.Append(m_StarModifiers.Count);
         newStarRecord.name = m_StringBuilder.ToString();
@@ -105,6 +112,11 @@ public class UseStarModifer : MonoBehaviour
             UseStar starModifier = m_StarModifiers[i];
             UseStarInfo useStarInfo = useStarHistory.GetOrAdd(i);
             useStarInfo.m_Usage = starModifier.m_UsageInput.text;
+            useStarInfo.m_Date = starModifier.m_Date.text;
+            if (string.IsNullOrEmpty(useStarInfo.m_Date))
+            {
+                useStarInfo.m_Date = DateTime.Now.ToString("yyyy年M月d日");
+            }
             int.TryParse(starModifier.m_UseStarInput.text, out useStarInfo.m_Count);
         }
         for (int i = iMax; i < iPrevMax; i++)
