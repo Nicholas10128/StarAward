@@ -32,7 +32,11 @@ public class StarUsage : MonoBehaviour
 
     public void OnSync()
     {
+        RefreshUI();
+
         OnOpen();
+
+        RefreshToday();
     }
 
     public void RefreshUI()

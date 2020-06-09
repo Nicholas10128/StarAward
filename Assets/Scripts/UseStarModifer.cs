@@ -24,6 +24,11 @@ public class UseStarModifer : MonoBehaviour
         m_DeleteConfirmCallbackDelegate = DeleteConfirmCallback;
     }
 
+    public void OnSync()
+    {
+        RefreshUI();
+    }
+
     void Update()
     {
         

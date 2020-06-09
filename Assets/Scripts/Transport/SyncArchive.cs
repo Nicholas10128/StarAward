@@ -277,6 +277,7 @@ public class SyncArchive : MonoBehaviour
         if (networkEvent == NetworkEventType.DisconnectEvent)
         {
             m_StateDisplay.text = "与中转服务器断开连接";
+            m_SyncButton.SetActive(false);
         }
 
         do
@@ -322,6 +323,7 @@ public class SyncArchive : MonoBehaviour
                         m_CreateButton.SetActive(true);
                         m_JoinButton.SetActive(true);
                         m_ShutdownButton.SetActive(false);
+                        m_SyncButton.SetActive(false);
                         break;
                     }
                 case NetworkEventType.Nothing:

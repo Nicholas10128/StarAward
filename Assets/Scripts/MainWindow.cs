@@ -58,7 +58,28 @@ public class MainWindow : MonoBehaviour
 
     public void OnSync()
     {
+        m_StarUsageModifer.OnSync();
         m_StarUsage.OnSync();
+        m_UseStarModifer.OnSync();
+        switch (m_TabButtonUsage)
+        {
+            case TabButtonUsage.TBU_Settings:
+                m_StarToday.text = string.Empty;
+                m_StarCount.text = string.Empty;
+                m_StarImage.enabled = false;
+                break;
+            case TabButtonUsage.TBU_Stars:
+                m_StarToday.text = "今日获得星星";
+                m_StarCount.text = m_StarUsage.totalStarCount.ToString();
+                m_StarImage.enabled = true;
+                break;
+            case TabButtonUsage.TBU_Spend:
+                m_StarToday.text = "你共拥有星星";
+                long starCountLeft = Days.m_Instance.GetTotalCountByUsage(-1) - UseStarHistory.m_Instance.GetTotalCount();
+                m_StarCount.text = starCountLeft.ToString();
+                m_StarImage.enabled = true;
+                break;
+        }
         CustomStarUsage.m_Instance.Save();
         UseStarHistory.m_Instance.Save();
         Days.m_Instance.Save();
