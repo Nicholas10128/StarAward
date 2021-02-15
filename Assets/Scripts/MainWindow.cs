@@ -45,7 +45,8 @@ public class MainWindow : MonoBehaviour
         m_SettingsNotSaveConfirmCallbackDelegate = SettingsNotSaveConfirmCallback;
         m_SpendNotSaveConfirmCallbackDelegate = SpendNotSaveConfirmCallback;
 
-        m_DateToday.text = DateTime.Now.ToString("yyyy年M月d日");
+        RefreshUI();
+
         m_TabButtons[(int)TabButtonUsage.TBU_Stars].localScale = m_SelectedScale;
         m_TabPages[(int)TabButtonUsage.TBU_Settings].SetActive(false);
         m_TabPages[(int)TabButtonUsage.TBU_Spend].SetActive(false);
@@ -54,6 +55,22 @@ public class MainWindow : MonoBehaviour
     void Update()
     {
         MessageBox.Tick();
+    }
+
+    void OnApplicationFocus(bool focus)
+    {
+        if (focus)
+        {
+            // The first time when application launch don't need refresh.
+            if (CustomStarUsage.m_Instance == null)
+            {
+                return;
+            }
+            RefreshUI();
+            m_StarUsageModifer.RefreshUI();
+            m_StarUsage.RefreshUI();
+            m_UseStarModifer.RefreshUI();
+        }
     }
 
     public void OnSync()
@@ -83,6 +100,11 @@ public class MainWindow : MonoBehaviour
         CustomStarUsage.m_Instance.Save();
         UseStarHistory.m_Instance.Save();
         Days.m_Instance.Save();
+    }
+
+    public void RefreshUI()
+    {
+        m_DateToday.text = DateTime.Now.ToString("yyyy年M月d日");
     }
 
     public void OnSyncArchiveButtonClick()
