@@ -68,7 +68,7 @@ public class MainWindow : MonoBehaviour
             }
             RefreshUI();
             m_StarUsageModifer.RefreshUI();
-            m_StarUsage.RefreshUI();
+            m_StarUsage.RefreshToday();
             m_UseStarModifer.RefreshUI();
         }
     }

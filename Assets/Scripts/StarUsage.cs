@@ -27,14 +27,12 @@ public class StarUsage : MonoBehaviour
 
         RefreshUI();
 
-        OnOpen();
+        RefreshToday();
     }
 
     public void OnSync()
     {
         RefreshUI();
-
-        OnOpen();
 
         RefreshToday();
     }
@@ -79,11 +77,6 @@ public class StarUsage : MonoBehaviour
         }
     }
 
-    public void RefreshToday()
-    {
-        RefreshDay(m_Today);
-    }
-
     public void OnStarChanged()
     {
         totalStarCount = 0;
@@ -111,7 +104,7 @@ public class StarUsage : MonoBehaviour
         m_MainWindow.OnStarCountChanged();
     }
 
-    private void OnOpen()
+    public void RefreshToday()
     {
         DateTime today = DateTime.Now;
         int dayCount = Days.m_Instance.Count;
