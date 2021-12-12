@@ -60,3 +60,5 @@ crashlytics-build.properties
 
 Shipping
 .DS_Store
+Assets/CloudBuildPlugin/*
+Assets/CloudBuildPlugin.meta
