@@ -3,6 +3,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using GCT.UI;
+using WebGLResolution;
 
 public class MainWindow : MonoBehaviour
 {
@@ -37,6 +38,7 @@ public class MainWindow : MonoBehaviour
 
     void Start()
     {
+        ScreenWindow.SetCanvasMaxSize();
         CustomStarUsage.Reload();
         Days.m_Instance.Reload();
         UseStarHistory.m_Instance.Reload();
