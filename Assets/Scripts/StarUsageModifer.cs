@@ -62,6 +62,20 @@ public class StarUsageModifer : MonoBehaviour
         }
     }
 
+    public void OnEndInput(InputField input)
+    {
+        int iMax = m_StarModifiers.Count;
+        for (int i = 0; i < iMax; i++)
+        {
+            StarModifier starModifier = m_StarModifiers[i];
+            if (ReferenceEquals(input, starModifier.m_UsageInput))
+            {
+                CustomStarUsage.m_Instance.ResetUsage(i, starModifier.m_UsageInput.text);
+                break;
+            }
+        }
+    }
+
     public void OnAddButtonClick()
     {
         GameObject newStarRecord = Instantiate(m_StarRecord.gameObject);

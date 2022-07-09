@@ -133,7 +133,10 @@ public class MainWindow : MonoBehaviour
 
     public void OnStarCountChanged()
     {
-        m_StarCount.text = m_StarUsage.totalStarCount.ToString();
+        if (m_TabButtonUsage == TabButtonUsage.TBU_Stars)
+        {
+            m_StarCount.text = m_StarUsage.totalStarCount.ToString();
+        }
     }
 
     void SettingsNotSaveConfirmCallback(MessageBox.ButtonID bid, object parameter)
