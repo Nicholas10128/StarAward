@@ -50,6 +50,9 @@ public class UseStarModifer : MonoBehaviour
                 {
                     OnAddButtonClick();
                 }
+                Vector3 pos = m_Transform.localPosition;
+                pos.y = starUsageCount * 200;
+                m_Transform.localPosition = pos;
             }
         }
         for (int i = 0; i < starUsageCount; i++)
